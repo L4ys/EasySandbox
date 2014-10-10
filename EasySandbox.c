@@ -203,10 +203,24 @@ static void wrapper_init(void)
 	 * Unfortunately, a printf call that generates no output doesn't
 	 * work, so some extraneous output seems unavoidable. Fortunately,
 	 * this is easy to filter out as a post-processing step. */
+    
+    int fd_null = open("/dev/null", O_WRONLY);
+    int _stdout = dup(1);
+    int _stderr = dup(2);
+
+    dup2(fd_null, 1);
+    dup2(fd_null, 2);
+
 	fprintf(stdout, "<<entering SECCOMP mode>>\n");
 	fflush(stdout);
 	fprintf(stderr, "<<entering SECCOMP mode>>\n");
 	fflush(stderr);
+
+    dup2(_stdout, 1);
+    dup2(_stderr, 2);
+    close(_stdout);
+    close(_stderr);
+    close(fd_null);
 
 	/* The first call to read from stdin will also result in a
 	 * call to fstat.  Work around this by setting the stdin
